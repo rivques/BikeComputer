@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="BikeComputer.Views.MainPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label Text="Speed"
+                VerticalOptions="Start" 
+                HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label x:Name="SpeedLabel"
+                   Text="0"
+                   VerticalOptions="Start"
+                   HorizontalOptions="CenterAndExpand" FontSize="72"
+                   TextColor="White"/>
+            <Label Text="Your Acceleration"
+                VerticalOptions="Start" 
+                HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label x:Name="AccelLabel"
+                   Text="Not Yet Fetched"
+                   VerticalOptions="Start"
+                   HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label Text="Your Heading"
+                VerticalOptions="Start" 
+                HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label x:Name="HeadingLabel"
+                   Text="Not Yet Fetched"
+                   VerticalOptions="Start"
+                   HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label Text="Your Location"
+                VerticalOptions="Start" 
+                HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Label x:Name="LocationLabel"
+                   Text="Not Yet Fetched"
+                   VerticalOptions="Start"
+                   HorizontalOptions="CenterAndExpand" FontSize="20"/>
+            <Button x:Name="trailblazeButton" 
+                    Text="Start Trailblazing"
+                    FontFamily="RobotoMono"
+                    FontSize="20"
+                    Clicked="OnTrailblazingClicked"
+                    VerticalOptions="End"/>
+            <Button x:Name="bluetoothButton" 
+                    Text="BT Options (Disconnected)"
+                    FontFamily="RobotoMono"
+                    FontSize="20"
+                    Clicked="OnBTButtonClicked"
+                    VerticalOptions="End"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
