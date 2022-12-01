@@ -10,6 +10,7 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
@@ -36,23 +37,17 @@
 	<string>Must use GPS to track rides!</string>
 	<key>UIBackgroundModes</key>
 	<array>
-		<!--for connecting to devices (client)-->
 		<string>bluetooth-central</string>
-
-		<!--for server configurations if needed-->
 		<string>bluetooth-peripheral</string>
+		<string>audio</string>
 	</array>
-
-	<!--Description of the Bluetooth request message (required on iOS 10, deprecated)-->
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>(iOS 10) Need Bluetooth to connect to ESP32</string>
-
-	<!--Description of the Bluetooth request message (required on iOS 13)-->
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>(iOS 13) Need Bluetooth to connect to ESP32</string>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true />
+	<true/>
 	<key>UIFileSharingEnabled</key>
-	<true />
+	<true/>
 </dict>
 </plist>
