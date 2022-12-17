@@ -43,6 +43,18 @@ namespace BikeComputer.Views
 
         bool isTrailblazing = false;
 
+        enum GPSState
+        {
+            Off,
+            TrackingOnly,
+            Speedometer
+        }
+
+        GPSState gPSState = GPSState.TrackingOnly;
+
+        double gPSSpeed = 0; // mph
+        DateTime lastRead = DateTime.Now;
+
         protected override async void OnAppearing()
         {
             base.OnAppearing();
@@ -66,6 +78,11 @@ namespace BikeComputer.Views
                     Device.BeginInvokeOnMainThread(() =>
                     {
                         LocationLabel.Text = result;
+                        if(gPSState == GPSState.Speedometer)
+                        {
+                            Console.WriteLine("Setting SpeedGPS");
+                            SpeedLabel.Text = Math.Round(gPSSpeed, 1).ToString();
+                        }
                     });
                 });
                 return !shouldStopTimer;
@@ -92,7 +109,10 @@ namespace BikeComputer.Views
                 currentSpeed = inchesPerSecond * 0.05682; // mph
                 Device.BeginInvokeOnMainThread(() =>
                 {
-                    SpeedLabel.Text = Math.Round(currentSpeed).ToString();
+                    if (gPSState != GPSState.Speedometer)
+                    {
+                        SpeedLabel.Text = Math.Round(currentSpeed, 1).ToString();
+                    } 
                 });
                 ;
                 return !shouldStopTimer;
@@ -125,6 +145,39 @@ namespace BikeComputer.Views
                 case "Stop Connecting":
                     if (btCts != null && !btCts.IsCancellationRequested)
                         btCts.Cancel();
+                    break;
+                default: break;
+            }
+        }
+
+        public async void OnGPSButtonClicked(object caller, EventArgs e)
+        {
+            string action = await DisplayActionSheet("GPS Controls", "Cancel", "Stop Tracking", "Tracking Only", "Speedometer");
+            switch (action)
+            {
+                case "Stop Tracking":
+                    if (isTrailblazing)
+                    {
+                        if (!(await DisplayAlert("Cannot Disable GPS", "Cannot disable GPS while trailblazing! Stop trailblazing and disable GPS?", "Yes", "Cancel"))){
+                            return;
+                        }
+                        isTrailblazing = false;
+                        trailblazeButton.Text = "Start Trailblazing";
+                        File.AppendAllText(trailPath, @"
+    </trkseg>
+  </trk>
+</gpx>");
+                    }
+                    gPSState = GPSState.Off;
+                    gpsButton.Text = "GPS Options (off)";
+                    break;
+                case "Tracking Only":
+                    gPSState = GPSState.TrackingOnly;
+                    gpsButton.Text = "GPS Options (Tracking)";
+                    break;
+                case "Speedometer":
+                    gPSState = GPSState.Speedometer;
+                    gpsButton.Text = "GPS Options (Speedometer)";
                     break;
                 default: break;
             }
@@ -201,6 +254,11 @@ namespace BikeComputer.Views
 </gpx>");
             } else
             {
+               if(gPSState == GPSState.Off)
+                {
+                    await DisplayAlert("Cannot Trailblaze", "GPS must be enabled to trailblaze.", "Ok");
+                    return;
+                }
                 string trailName = await DisplayPromptAsync("Name Trail", "What is this trail's name?");
                 if(trailName == null || trailName == "")
                     return; // user cancelled
@@ -242,7 +300,7 @@ namespace BikeComputer.Views
             //Console.WriteLine($"Reading: X: {data.Acceleration.X}, Y: {data.Acceleration.Y}, Z: {data.Acceleration.Z}");
             Device.BeginInvokeOnMainThread(() =>
             {
-                AccelLabel.Text = $"X: {Math.Round(data.Acceleration.X, 3):N3}, Y: {Math.Round(data.Acceleration.Y, 3):N3}, Z: {Math.Round(data.Acceleration.Z, 3):N3}";
+                AccelLabel.Text = $"X:{Math.Round(data.Acceleration.X, 2):N2} Y:{Math.Round(data.Acceleration.Y, 2):N2} Z:{Math.Round(data.Acceleration.Z, 2):N2}";
             });
         }
 
@@ -299,6 +357,11 @@ namespace BikeComputer.Views
 
         async Task<String> GetCurrentLocation()
         {
+            if(gPSState == GPSState.Off)
+            {
+                return "GPS Off";
+            }
+            Console.WriteLine("Getting GPS location!");
             try
             {
                 var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(10));
@@ -308,6 +371,13 @@ namespace BikeComputer.Views
                 if (location != null)
                 {
                     //Console.WriteLine(location.ToString());
+                    if (currentLocation != null)
+                    {
+                        double milesDiff = location.CalculateDistance(currentLocation, DistanceUnits.Miles);
+                        Console.WriteLine($"{milesDiff} meters away");
+                        gPSSpeed = milesDiff / (lastRead - DateTime.Now).TotalHours;
+                    }
+                    lastRead = DateTime.Now;
                     currentLocation = location;
                     return $"Lat: {Math.Round(location.Latitude, 6)}, Long: {Math.Round(location.Longitude, 6)}, Alt: {Math.Round((double)location.Altitude * 3.281, 1)}";
                 }
@@ -315,18 +385,29 @@ namespace BikeComputer.Views
             catch (FeatureNotSupportedException fnsEx)
             {
                 // Handle not supported on device exception
+                Console.WriteLine(fnsEx.Message);
             }
             catch (FeatureNotEnabledException fneEx)
             {
                 // Handle not enabled on device exception
+                Console.WriteLine(fneEx.Message);
             }
             catch (PermissionException pEx)
             {
                 // Handle permission exception
+                Console.WriteLine(pEx.Message);
+                Device.BeginInvokeOnMainThread(() =>
+                {
+                    var request = new GeolocationRequest(GeolocationAccuracy.Best, TimeSpan.FromSeconds(10));
+                    gpsCts = new CancellationTokenSource();
+                    var location = Geolocation.GetLocationAsync(request, gpsCts.Token).Result;
+                    gpsCts.Cancel();
+                });
             }
             catch (Exception ex)
             {
                 // Unable to get location
+                Console.WriteLine(ex.Message);
             }
             return null;
         }

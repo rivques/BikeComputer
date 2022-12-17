@@ -45,6 +45,12 @@
                     FontSize="20"
                     Clicked="OnBTButtonClicked"
                     VerticalOptions="End"/>
+            <Button x:Name="gpsButton" 
+                    Text="GPS Options (Tracking)"
+                    FontFamily="RobotoMono"
+                    FontSize="20"
+                    Clicked="OnGPSButtonClicked"
+                    VerticalOptions="End"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
